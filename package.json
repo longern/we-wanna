@@ -1,0 +1,10 @@
+{
+  "name": "we-wanna",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "wasm": "cd core && cargo build --release"
+  },
+  "author": "longern",
+  "license": "MIT"
+}
