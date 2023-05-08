@@ -9,15 +9,15 @@ let onmessageCallback: (channelId: number, buffer: ArrayBuffer) => void;
 interface Exports {
   memory: WebAssembly.Memory;
   onmessage: (channelId: number, len: number) => void;
+  ontick?: () => void;
 }
 
 const exports = await WebAssembly.instantiate(wasm, {
   env: {
     recv: (channelId: number, ptr: number, len: number) => {
       const [_, buffer] = messages.shift()!;
-      const view = new Uint8Array(buffer);
-      const memory = new Uint8Array(exports.memory.buffer);
-      memory.set(view, ptr);
+      const view = new Uint8Array(exports.memory.buffer, ptr, len);
+      view.set(new Uint8Array(buffer));
     },
     send: (channelId: number, ptr: number, len: number) => {
       const memory = new Uint8Array(exports.memory.buffer);
@@ -25,7 +25,15 @@ const exports = await WebAssembly.instantiate(wasm, {
       onmessageCallback(channelId, view.buffer);
     },
   },
-}).then((res) => res.instance.exports as unknown as Exports);
+}).then((res) => {
+  const exports: Exports = res.instance.exports as any;
+  if (exports.ontick) {
+    setInterval(() => {
+      exports.ontick!();
+    }, 1000 / 60);
+  }
+  return exports;
+});
 
 export function send(channelId: number, buffer: ArrayBuffer) {
   messages.push([channelId, buffer]);
