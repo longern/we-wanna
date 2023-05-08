@@ -6,5 +6,8 @@
     "wasm": "cd core && cargo build --release"
   },
   "author": "longern",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^4.3.5"
+  }
 }
