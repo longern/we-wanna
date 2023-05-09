@@ -12,6 +12,10 @@ pub struct Player {
     pub ax: f32,
     #[serde(skip)]
     pub ay: f32,
+    #[serde(skip)]
+    pub left_pressed: bool,
+    #[serde(skip)]
+    pub right_pressed: bool,
 }
 
 #[derive(Deserialize)]
@@ -53,8 +57,10 @@ impl GameState {
         let player = &mut map.players[player_index];
         let tiles = &map.tiles;
         if key == 37 {
+            player.left_pressed = true;
             player.ax = -30.0;
         } else if key == 39 {
+            player.right_pressed = true;
             player.ax = 30.0;
         } else if key == 13 {
             // Detect if the player is on the ground
@@ -74,9 +80,20 @@ impl GameState {
 
         let map = self.map.as_mut().unwrap();
         let player = &mut map.players[player_index];
-        if key == 37 || key == 39 {
-            player.vx = 0.;
+        if key == 37 {
+            player.left_pressed = false;
+        } else {
+            player.right_pressed = false;
+        }
+        if (!player.left_pressed && !player.right_pressed)
+            || (player.left_pressed && player.right_pressed)
+        {
             player.ax = 0.;
+            player.vx = 0.;
+        } else if player.left_pressed {
+            player.ax = -30.;
+        } else {
+            player.ax = 30.;
         }
     }
 
@@ -84,9 +101,8 @@ impl GameState {
         const TICK_RATE: f32 = 60.;
         player.vy -= 60. / TICK_RATE;
         player.vx += player.ax / TICK_RATE;
-        if player.vx.abs() > 6. {
-            player.vx = 6. * player.vx.signum();
-            player.ax = 0.;
+        if player.vx.abs() > 8. {
+            player.vx = 8. * player.vx.signum();
         }
 
         // Check for collisions with tiles

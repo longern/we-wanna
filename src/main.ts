@@ -11,9 +11,9 @@ canvas.style.maxHeight = "100%";
 
 document.getElementById("app")!.appendChild(canvas);
 
-const disableColor = ["#000", "#00f", "#f00"];
+const disableColor = ["#333", "#2196f3", "#f44336"];
 
-function drawMap(map: Map) {
+function drawMap(map: Map, playerId) {
   const ctx = canvas.getContext("2d")!;
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -22,7 +22,7 @@ function drawMap(map: Map) {
 
   for (let i = 0; i < map.players.length; i++) {
     const player = map.players[i];
-    ctx.fillStyle = ["#f00", "#00f"][i];
+    ctx.fillStyle = ["#f44336", "#2196f3"][i];
     const centerX = player.x * unitSize + unitSize / 2;
     const centerY = canvas.height - player.y * unitSize - unitSize / 2;
     ctx.beginPath();
@@ -31,6 +31,7 @@ function drawMap(map: Map) {
   }
 
   for (const tile of map.tiles) {
+    ctx.filter = tile.disable_to === playerId + 1 ? "opacity(0.5)" : "none";
     ctx.fillStyle = disableColor[tile.disable_to ?? 0];
     ctx.fillRect(
       tile.x * unitSize,
@@ -39,9 +40,10 @@ function drawMap(map: Map) {
       unitSize
     );
   }
+  ctx.filter = "none";
 }
 
-drawMap(map as Map);
+drawMap(map as Map, 0);
 
 instantiate().then(() => {
   onmessage((channelId, buffer) => {
@@ -54,7 +56,7 @@ instantiate().then(() => {
         map.players[0].y = player0Y;
         map.players[1].x = player1X;
         map.players[1].y = player1Y;
-        drawMap(map as Map);
+        drawMap(map as Map, channelId - 1);
         break;
     }
   });
@@ -65,32 +67,32 @@ instantiate().then(() => {
   const view = new Uint8Array(buffer);
   view[0] = 0;
   view.set(mapBuffer, 1);
-  send(0, buffer);
-});
+  send(1, buffer);
 
-document.addEventListener("keydown", (e) => {
-  if (e.repeat) return;
-  const buffer = new ArrayBuffer(2);
-  const view = new Uint8Array(buffer);
-  view[0] = 1;
-  view[1] = e.keyCode;
-  if ([87, 65, 83, 68, 32].includes(view[1])) {
-    view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
-    send(1, buffer);
-  } else {
-    send(0, buffer);
-  }
-});
+  document.addEventListener("keydown", (e) => {
+    if (e.repeat) return;
+    const buffer = new ArrayBuffer(2);
+    const view = new Uint8Array(buffer);
+    view[0] = 1;
+    view[1] = e.keyCode;
+    if ([87, 65, 83, 68, 32].includes(view[1])) {
+      view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
+      send(2, buffer);
+    } else {
+      send(1, buffer);
+    }
+  });
 
-document.addEventListener("keyup", (e) => {
-  const buffer = new ArrayBuffer(2);
-  const view = new Uint8Array(buffer);
-  view[0] = 2;
-  view[1] = e.keyCode;
-  if ([87, 65, 83, 68, 32].includes(view[1])) {
-    view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
-    send(1, buffer);
-  } else {
-    send(0, buffer);
-  }
+  document.addEventListener("keyup", (e) => {
+    const buffer = new ArrayBuffer(2);
+    const view = new Uint8Array(buffer);
+    view[0] = 2;
+    view[1] = e.keyCode;
+    if ([87, 65, 83, 68, 32].includes(view[1])) {
+      view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
+      send(2, buffer);
+    } else {
+      send(1, buffer);
+    }
+  });
 });
