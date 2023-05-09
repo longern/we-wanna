@@ -1,4 +1,4 @@
-import { send, onmessage } from "./wasm";
+import { instantiate, send, onmessage } from "./wasm";
 import "./style.css";
 import map from "./map.json";
 import { Map } from "./types";
@@ -43,35 +43,43 @@ function drawMap(map: Map) {
 
 drawMap(map as Map);
 
-onmessage((channelId, buffer) => {
+instantiate().then(() => {
+  onmessage((channelId, buffer) => {
+    const view = new Uint8Array(buffer);
+    switch (view[0]) {
+      case 3:
+        const floatView = new Float32Array(buffer.slice(1));
+        const [player0X, player0Y, player1X, player1Y] = floatView;
+        map.players[0].x = player0X;
+        map.players[0].y = player0Y;
+        map.players[1].x = player1X;
+        map.players[1].y = player1Y;
+        drawMap(map as Map);
+        break;
+    }
+  });
+
+  // Concat map json with message type flag and convert to ArrayBuffer
+  const mapBuffer = new TextEncoder().encode(JSON.stringify(map));
+  const buffer = new ArrayBuffer(1 + mapBuffer.byteLength);
   const view = new Uint8Array(buffer);
-  switch (view[0]) {
-    case 3:
-      const floatView = new Float32Array(buffer.slice(1));
-      const [player0X, player0Y, player1X, player1Y] = floatView;
-      map.players[0].x = player0X;
-      map.players[0].y = player0Y;
-      map.players[1].x = player1X;
-      map.players[1].y = player1Y;
-      drawMap(map as Map);
-      break;
-  }
+  view[0] = 0;
+  view.set(mapBuffer, 1);
+  send(0, buffer);
 });
 
-// Concat map json with message type flag and convert to ArrayBuffer
-const mapBuffer = new TextEncoder().encode(JSON.stringify(map));
-const buffer = new ArrayBuffer(1 + mapBuffer.byteLength);
-const view = new Uint8Array(buffer);
-view[0] = 0;
-view.set(mapBuffer, 1);
-send(0, buffer);
-
 document.addEventListener("keydown", (e) => {
+  if (e.repeat) return;
   const buffer = new ArrayBuffer(2);
   const view = new Uint8Array(buffer);
   view[0] = 1;
   view[1] = e.keyCode;
-  send(0, buffer);
+  if ([87, 65, 83, 68, 32].includes(view[1])) {
+    view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
+    send(1, buffer);
+  } else {
+    send(0, buffer);
+  }
 });
 
 document.addEventListener("keyup", (e) => {
@@ -79,5 +87,10 @@ document.addEventListener("keyup", (e) => {
   const view = new Uint8Array(buffer);
   view[0] = 2;
   view[1] = e.keyCode;
-  send(0, buffer);
+  if ([87, 65, 83, 68, 32].includes(view[1])) {
+    view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
+    send(1, buffer);
+  } else {
+    send(0, buffer);
+  }
 });

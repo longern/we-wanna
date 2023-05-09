@@ -4,10 +4,14 @@ use serde::Deserialize;
 pub struct Player {
     pub x: f32,
     pub y: f32,
-    #[serde(default)]
+    #[serde(skip)]
     pub vx: f32,
-    #[serde(default)]
+    #[serde(skip)]
     pub vy: f32,
+    #[serde(skip)]
+    pub ax: f32,
+    #[serde(skip)]
+    pub ay: f32,
 }
 
 #[derive(Deserialize)]
@@ -49,10 +53,10 @@ impl GameState {
         let player = &mut map.players[player_index];
         let tiles = &map.tiles;
         if key == 37 {
-            player.vx = -5.0;
+            player.ax = -30.0;
         } else if key == 39 {
-            player.vx = 5.0;
-        } else if key == 32 {
+            player.ax = 30.0;
+        } else if key == 13 {
             // Detect if the player is on the ground
             // and if so, set the velocity to jump
             for tile in tiles {
@@ -72,12 +76,18 @@ impl GameState {
         let player = &mut map.players[player_index];
         if key == 37 || key == 39 {
             player.vx = 0.;
+            player.ax = 0.;
         }
     }
 
     fn update_player(player: &mut Player, index: usize, tiles: &Vec<Tile>) {
         const TICK_RATE: f32 = 60.;
         player.vy -= 60. / TICK_RATE;
+        player.vx += player.ax / TICK_RATE;
+        if player.vx.abs() > 6. {
+            player.vx = 6. * player.vx.signum();
+            player.ax = 0.;
+        }
 
         // Check for collisions with tiles
         if player.vx > 0. {
