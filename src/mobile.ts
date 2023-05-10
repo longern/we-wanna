@@ -15,7 +15,7 @@ function addControls() {
     document.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 37 }));
     leftButton.style.backgroundColor = "#ccc";
   };
-  leftButton.ontouchend = () => {
+  leftButton.ontouchend = leftButton.ontouchcancel = () => {
     document.dispatchEvent(new KeyboardEvent("keyup", { keyCode: 37 }));
     leftButton.style.backgroundColor = "#f5f5f5";
   };
@@ -35,7 +35,7 @@ function addControls() {
     document.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 39 }));
     rightButton.style.backgroundColor = "#ccc";
   };
-  rightButton.ontouchend = () => {
+  rightButton.ontouchend = rightButton.ontouchcancel = () => {
     document.dispatchEvent(new KeyboardEvent("keyup", { keyCode: 39 }));
     rightButton.style.backgroundColor = "#f5f5f5";
   };
@@ -55,7 +55,7 @@ function addControls() {
     document.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 13 }));
     jumpButton.style.backgroundColor = "#ccc";
   };
-  jumpButton.ontouchend = () => {
+  jumpButton.ontouchend = jumpButton.ontouchcancel = () => {
     document.dispatchEvent(new KeyboardEvent("keyup", { keyCode: 13 }));
     jumpButton.style.backgroundColor = "#f5f5f5";
   };

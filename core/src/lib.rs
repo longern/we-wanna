@@ -1,6 +1,6 @@
 mod game;
 
-const BUFFER_SIZE: usize = 1024;
+const BUFFER_SIZE: usize = 8192;
 static mut INPUT_BUFFER: [u8; BUFFER_SIZE] = [0; BUFFER_SIZE];
 static mut OUTPUT_BUFFER: [u8; BUFFER_SIZE] = [0; BUFFER_SIZE];
 static mut GAME_STATE: game::GameState = game::GameState { map: None };

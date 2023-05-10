@@ -15,11 +15,14 @@ document.getElementById("app")!.appendChild(canvas);
 const disableColor = ["#333", "#2196f3", "#f44336"];
 
 function drawMap(map: Map, playerId: number) {
-  const ctx = canvas.getContext("2d")!;
+  const ctx = canvas.getContext("2d", { alpha: false })!;
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   const unitSize = canvas.width / map.width;
+
+  // Keep player in the center
+  ctx.translate(canvas.width / 2 - map.players[playerId].x * unitSize, 0);
 
   for (let i = 0; i < map.players.length; i++) {
     const player = map.players[i];
@@ -42,6 +45,9 @@ function drawMap(map: Map, playerId: number) {
     );
   }
   ctx.filter = "none";
+
+  // Reset translation
+  ctx.translate(-canvas.width / 2 + map.players[playerId].x * unitSize, 0);
 }
 
 drawMap(map as Map, 0);

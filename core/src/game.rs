@@ -65,10 +65,17 @@ impl GameState {
         } else if key == 13 {
             // Detect if the player is on the ground
             // and if so, set the velocity to jump
+            let mut on_ground = false;
             for tile in tiles {
                 if (tile.y - player.y + 1.).abs() < 0.001 && (tile.x - player.x).abs() < 1. {
-                    player.vy = 20.;
+                    on_ground = true;
                 }
+            }
+            if player.y.abs() < 0.001 {
+                on_ground = true;
+            }
+            if on_ground {
+                player.vy = 20.;
             }
         }
     }
@@ -154,6 +161,10 @@ impl GameState {
                     player.vy = 0.;
                     player.y = tile.y + 1.;
                 }
+            }
+            if player.y + player.vy / TICK_RATE <= 0. {
+                player.vy = 0.;
+                player.y = 0.;
             }
         }
 
