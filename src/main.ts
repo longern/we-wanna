@@ -2,6 +2,7 @@ import { instantiate, send, onmessage } from "./wasm";
 import "./style.css";
 import map from "./map.json";
 import { Map } from "./types";
+import "./mobile";
 
 const canvas = document.createElement("canvas");
 canvas.width = 960;
@@ -13,7 +14,7 @@ document.getElementById("app")!.appendChild(canvas);
 
 const disableColor = ["#333", "#2196f3", "#f44336"];
 
-function drawMap(map: Map, playerId) {
+function drawMap(map: Map, playerId: number) {
   const ctx = canvas.getContext("2d")!;
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
