@@ -1,15 +1,13 @@
 const { matches } = window.matchMedia("(max-width: 768px)");
 
 function addControls() {
+  const controller = document.createElement("div");
+  controller.classList.add("controller");
+
   const leftButton = document.createElement("button");
   leftButton.innerText = "←";
-  leftButton.style.position = "absolute";
   leftButton.style.bottom = "48px";
   leftButton.style.left = "100px";
-  leftButton.style.width = "48px";
-  leftButton.style.height = "48px";
-  leftButton.style.zIndex = "100";
-  leftButton.style.borderRadius = "999px";
   leftButton.ontouchstart = (ev) => {
     ev.preventDefault();
     document.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 37 }));
@@ -19,17 +17,12 @@ function addControls() {
     document.dispatchEvent(new KeyboardEvent("keyup", { keyCode: 37 }));
     leftButton.style.backgroundColor = "#f5f5f5";
   };
-  document.body.appendChild(leftButton);
+  controller.appendChild(leftButton);
 
   const rightButton = document.createElement("button");
   rightButton.innerText = "→";
-  rightButton.style.position = "absolute";
   rightButton.style.bottom = "48px";
-  rightButton.style.left = "160px";
-  rightButton.style.width = "48px";
-  rightButton.style.height = "48px";
-  rightButton.style.zIndex = "100";
-  rightButton.style.borderRadius = "999px";
+  rightButton.style.left = "172px";
   rightButton.ontouchstart = (ev) => {
     ev.preventDefault();
     document.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 39 }));
@@ -39,17 +32,12 @@ function addControls() {
     document.dispatchEvent(new KeyboardEvent("keyup", { keyCode: 39 }));
     rightButton.style.backgroundColor = "#f5f5f5";
   };
-  document.body.appendChild(rightButton);
+  controller.appendChild(rightButton);
 
   const jumpButton = document.createElement("button");
   jumpButton.innerText = "↑";
-  jumpButton.style.position = "absolute";
   jumpButton.style.bottom = "48px";
   jumpButton.style.right = "100px";
-  jumpButton.style.width = "48px";
-  jumpButton.style.height = "48px";
-  jumpButton.style.zIndex = "100";
-  jumpButton.style.borderRadius = "999px";
   jumpButton.ontouchstart = (ev) => {
     ev.preventDefault();
     document.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 13 }));
@@ -59,7 +47,9 @@ function addControls() {
     document.dispatchEvent(new KeyboardEvent("keyup", { keyCode: 13 }));
     jumpButton.style.backgroundColor = "#f5f5f5";
   };
-  document.body.appendChild(jumpButton);
+  controller.appendChild(jumpButton);
+
+  document.body.appendChild(controller);
 }
 
 if (matches) {
@@ -79,6 +69,8 @@ if (matches) {
       addControls();
     } else {
       fullscreenButton.style.display = "block";
+      const controller = document.querySelector(".controller");
+      if (controller) document.body.removeChild(controller);
     }
   });
   document.body.appendChild(fullscreenButton);

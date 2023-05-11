@@ -1,6 +1,6 @@
 import { instantiate, send, onmessage } from "./wasm";
 import "./style.css";
-import map from "./map.json";
+import map from "./maps/level1.json";
 import { Map } from "./types";
 import "./mobile";
 
