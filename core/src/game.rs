@@ -19,6 +19,23 @@ pub struct Player {
 }
 
 #[derive(Deserialize)]
+pub struct AnimationKeyframe {
+    pub offset: f32,
+    #[serde(default)]
+    pub x: f32,
+    #[serde(default)]
+    pub y: f32,
+}
+
+#[derive(Deserialize)]
+pub struct Animation {
+    pub duration: f32,
+    pub keyframes: Vec<AnimationKeyframe>,
+    #[serde(default)]
+    pub delay: f32,
+}
+
+#[derive(Deserialize)]
 pub struct Tile {
     pub x: f32,
     pub y: f32,
@@ -26,6 +43,7 @@ pub struct Tile {
     pub hidden_to: u32,
     #[serde(default)]
     pub disable_to: u32,
+    pub animation: Option<Animation>,
 }
 
 #[derive(Deserialize)]
@@ -52,6 +70,7 @@ impl Map {
 #[derive(Deserialize)]
 pub struct GameState {
     pub map: Option<Map>,
+    pub tick: u32,
 }
 
 impl GameState {
@@ -181,7 +200,38 @@ impl GameState {
 
     // Update the game state
     pub fn ontick(&mut self) {
+        if self.map.is_none() {
+            return;
+        }
         let map = self.map.as_mut().unwrap();
+
+        self.tick += 1;
+
+        for tile in &mut map.tiles {
+            if tile.animation.is_none() {
+                continue;
+            }
+
+            let animation = tile.animation.as_ref().unwrap();
+            let elapsed = self.tick as f32 / 60.;
+            let mut offset = (elapsed - animation.delay) / animation.duration;
+            offset %= 1.;
+            let mut keyframe_index = 0;
+            for i in 0..animation.keyframes.len() {
+                if animation.keyframes[i].offset > offset {
+                    break;
+                }
+                keyframe_index = i;
+            }
+            let keyframe = &animation.keyframes[keyframe_index];
+            let next_keyframe =
+                &animation.keyframes[(keyframe_index + 1) % animation.keyframes.len()];
+            // Linear interpolation
+            let t = (offset - keyframe.offset) / (next_keyframe.offset - keyframe.offset);
+            tile.x = keyframe.x + (next_keyframe.x - keyframe.x) * t;
+            tile.y = keyframe.y + (next_keyframe.y - keyframe.y) * t;
+        }
+
         for i in 0..map.players.len() {
             let player = &mut map.players[i];
             GameState::update_player(player, i, &map.tiles);

@@ -17,12 +17,29 @@ function levelScreen({
       const view = new Uint8Array(buffer);
       switch (view[0]) {
         case 3:
-          const floatView = new Float32Array(buffer.slice(1));
+          const floatView = new Float32Array(buffer.slice(1, 17));
           const [player0X, player0Y, player1X, player1Y] = floatView;
           level.players[0].x = player0X;
           level.players[0].y = player0Y;
           level.players[1].x = player1X;
           level.players[1].y = player1Y;
+
+          const animatedTilesCountView = new Int32Array(buffer.slice(17, 21));
+          const animatedTilesCount = animatedTilesCountView[0];
+          for (let i = 0; i < animatedTilesCount; i++) {
+            const offset = 21 + i * 12;
+            const animatedIndexView = new Int32Array(
+              buffer.slice(offset, offset + 4)
+            );
+            const animatedIndex = animatedIndexView[0];
+            const animatedPosView = new Float32Array(
+              buffer.slice(offset + 4, offset + 12)
+            );
+            const [x, y] = animatedPosView;
+            level.tiles[animatedIndex].x = x;
+            level.tiles[animatedIndex].y = y;
+          }
+
           break;
       }
     });
