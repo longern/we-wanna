@@ -10,11 +10,15 @@ function addControls() {
   leftButton.style.left = "100px";
   leftButton.ontouchstart = (ev) => {
     ev.preventDefault();
-    document.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 37 }));
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { code: "ArrowLeft", keyCode: 37 })
+    );
     leftButton.style.backgroundColor = "#ccc";
   };
   leftButton.ontouchend = leftButton.ontouchcancel = () => {
-    document.dispatchEvent(new KeyboardEvent("keyup", { keyCode: 37 }));
+    document.dispatchEvent(
+      new KeyboardEvent("keyup", { code: "ArrowLeft", keyCode: 37 })
+    );
     leftButton.style.backgroundColor = "#f5f5f5";
   };
   controller.appendChild(leftButton);
@@ -25,11 +29,15 @@ function addControls() {
   rightButton.style.left = "172px";
   rightButton.ontouchstart = (ev) => {
     ev.preventDefault();
-    document.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 39 }));
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { code: "ArrowRight", keyCode: 39 })
+    );
     rightButton.style.backgroundColor = "#ccc";
   };
   rightButton.ontouchend = rightButton.ontouchcancel = () => {
-    document.dispatchEvent(new KeyboardEvent("keyup", { keyCode: 39 }));
+    document.dispatchEvent(
+      new KeyboardEvent("keyup", { code: "ArrowRight", keyCode: 39 })
+    );
     rightButton.style.backgroundColor = "#f5f5f5";
   };
   controller.appendChild(rightButton);
@@ -40,11 +48,15 @@ function addControls() {
   jumpButton.style.right = "100px";
   jumpButton.ontouchstart = (ev) => {
     ev.preventDefault();
-    document.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 13 }));
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { code: "Enter", keyCode: 13 })
+    );
     jumpButton.style.backgroundColor = "#ccc";
   };
   jumpButton.ontouchend = jumpButton.ontouchcancel = () => {
-    document.dispatchEvent(new KeyboardEvent("keyup", { keyCode: 13 }));
+    document.dispatchEvent(
+      new KeyboardEvent("keyup", { code: "Enter", keyCode: 13 })
+    );
     jumpButton.style.backgroundColor = "#f5f5f5";
   };
   controller.appendChild(jumpButton);

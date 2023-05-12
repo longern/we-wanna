@@ -5,20 +5,20 @@ function selectLevelScreen({
 }: {
   onLevelSelect: (level: Level) => void;
 }) {
-  const levelImports: Record<string, () => Promise<Level>> = import.meta.glob(
-    "../levels/*.json"
-  );
+  const levelImports = import.meta.glob<Level>("../levels/*.json");
   const levels = [...Object.keys(levelImports)];
   let selectedLevel = 0;
 
   function handleKeyDown(e: KeyboardEvent) {
     if (e.repeat) return;
     switch (e.code) {
+      case "ArrowLeft":
       case "ArrowUp":
         if (selectedLevel > 0) {
           selectedLevel--;
         }
         break;
+      case "ArrowRight":
       case "ArrowDown":
         if (selectedLevel < levels.length - 1) {
           selectedLevel++;
