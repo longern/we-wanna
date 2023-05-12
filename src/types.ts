@@ -9,9 +9,15 @@ export interface Tile {
   disable_to?: number;
 }
 
+export interface Goal {
+  x: number;
+  y: number;
+}
+
 export interface Level {
   width: number;
   height: number;
   players: Player[];
   tiles: Tile[];
+  goal: Goal;
 }

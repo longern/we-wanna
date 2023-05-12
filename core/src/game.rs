@@ -29,11 +29,18 @@ pub struct Tile {
 }
 
 #[derive(Deserialize)]
+pub struct Goal {
+    pub x: f32,
+    pub y: f32,
+}
+
+#[derive(Deserialize)]
 pub struct Map {
     pub width: i32,
     pub height: i32,
     pub players: Vec<Player>,
     pub tiles: Vec<Tile>,
+    pub goal: Goal,
 }
 
 impl Map {

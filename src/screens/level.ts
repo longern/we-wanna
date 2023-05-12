@@ -73,6 +73,36 @@ function levelScreen({
     // Keep player in the center
     ctx.translate(canvas.width / 2 - level.players[playerId].x * unitSize, 0);
 
+    // Draw exit
+    ctx.fillStyle = "#4caf50";
+    ctx.fillRect(
+      (level.goal.x - 0.1) * unitSize,
+      canvas.height - (level.goal.y + 0.5) * unitSize,
+      unitSize * 1.2 + 0.1,
+      unitSize + 0.1
+    );
+    ctx.beginPath();
+    ctx.arc(
+      (level.goal.x + 0.5) * unitSize,
+      canvas.height - (level.goal.y + 0.6) * unitSize,
+      unitSize * 0.6,
+      0,
+      2 * Math.PI,
+      false
+    );
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.arc(
+      (level.goal.x + 0.9) * unitSize,
+      canvas.height - (level.goal.y + 0.5) * unitSize,
+      unitSize * 0.1,
+      0,
+      2 * Math.PI,
+      false
+    );
+    ctx.fill();
+
     for (let i = 0; i < level.players.length; i++) {
       const player = level.players[i];
       ctx.fillStyle = ["#f44336", "#2196f3"][i];
@@ -88,7 +118,7 @@ function levelScreen({
       ctx.fillStyle = disableColor[tile.disable_to ?? 0];
       ctx.fillRect(
         tile.x * unitSize,
-        canvas.height - tile.y * unitSize - unitSize,
+        canvas.height - (tile.y + 1) * unitSize,
         unitSize + 0.1,
         unitSize + 0.1
       );
