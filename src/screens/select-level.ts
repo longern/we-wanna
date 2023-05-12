@@ -1,17 +1,17 @@
-import { Map } from "../types";
+import { Level } from "../types";
 
 function selectLevelScreen({
   onLevelSelect,
 }: {
-  onLevelSelect: (level: Map) => void;
+  onLevelSelect: (level: Level) => void;
 }) {
-  const levelImports: Record<string, () => Promise<Map>> = import.meta.glob(
-    "../maps/*.json"
+  const levelImports: Record<string, () => Promise<Level>> = import.meta.glob(
+    "../levels/*.json"
   );
   const levels = [...Object.keys(levelImports)];
   let selectedLevel = 0;
 
-  function handleKeyDown(e) {
+  function handleKeyDown(e: KeyboardEvent) {
     if (e.repeat) return;
     switch (e.code) {
       case "ArrowUp":

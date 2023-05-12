@@ -9,7 +9,7 @@ export interface Tile {
   disable_to?: number;
 }
 
-export interface Map {
+export interface Level {
   width: number;
   height: number;
   players: Player[];

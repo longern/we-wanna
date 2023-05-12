@@ -2,6 +2,7 @@ import "./style.css";
 import "./mobile";
 import levelScreen from "./screens/level";
 import selectLevelScreen from "./screens/select-level";
+import { Level } from "./types";
 
 const canvas = document.createElement("canvas");
 canvas.width = 960;
@@ -17,12 +18,27 @@ interface Component {
 }
 
 function main() {
-  let component: Component = selectLevelScreen({
-    onLevelSelect: (map) => {
-      component.unmount?.();
-      component = levelScreen({ map, playerId: 0 });
-    },
-  });
+  function createSelectLevelScreen() {
+    return selectLevelScreen({
+      onLevelSelect: (level) => {
+        component.unmount?.();
+        component = createLevelScreen({ level });
+      },
+    });
+  }
+
+  function createLevelScreen({ level }: { level: Level }) {
+    return levelScreen({
+      level,
+      playerId: 0,
+      onExit: () => {
+        component.unmount?.();
+        component = createSelectLevelScreen();
+      },
+    });
+  }
+
+  let component: Component = createSelectLevelScreen();
 
   setInterval(() => {
     component.render(canvas.getContext("2d")!);
