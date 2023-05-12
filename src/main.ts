@@ -1,4 +1,5 @@
 import "./style.css";
+import "./gamepad";
 import "./mobile";
 import levelScreen from "./screens/level";
 import selectLevelScreen from "./screens/select-level";
