@@ -1,19 +1,20 @@
 window.addEventListener("gamepadconnected", (e) => {
-  const gamepad = e.gamepad;
   console.log(
     "Gamepad connected at index %d: %s. %d buttons, %d axes.",
-    gamepad.index,
-    gamepad.id,
-    gamepad.buttons.length,
-    gamepad.axes.length
+    e.gamepad.index,
+    e.gamepad.id,
+    e.gamepad.buttons.length,
+    e.gamepad.axes.length
   );
 
-  const isPressed = gamepad.buttons.map((button) => button.pressed);
+  const gamepadIndex = e.gamepad.index;
+  const isPressed = e.gamepad.buttons.map((button) => button.pressed);
   const interval = setInterval(() => {
+    const gamepad = navigator.getGamepads()[gamepadIndex];
     gamepad.buttons.forEach((button, index) => {
       if (button.pressed !== isPressed[index]) {
         isPressed[index] = button.pressed;
-        window.dispatchEvent(
+        document.dispatchEvent(
           new KeyboardEvent(button.pressed ? "keydown" : "keyup", {
             code: `GamepadButton${index}`,
           })

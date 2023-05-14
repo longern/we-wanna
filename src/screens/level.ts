@@ -58,6 +58,17 @@ function levelScreen({
       const view = new Uint8Array(buffer);
       view[0] = 1;
       view[1] = e.keyCode;
+      if (e.code.startsWith("GamepadButton")) {
+        view[1] = [38, 37, 40, 39, 13][
+          [
+            "GamepadButton12",
+            "GamepadButton14",
+            "GamepadButton13",
+            "GamepadButton15",
+            "GamepadButton0",
+          ].indexOf(e.code)
+        ];
+      }
       if ([87, 65, 83, 68, 32].includes(view[1])) {
         view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
         send(2, buffer);
@@ -71,6 +82,17 @@ function levelScreen({
       const view = new Uint8Array(buffer);
       view[0] = 2;
       view[1] = e.keyCode;
+      if (e.code.startsWith("GamepadButton")) {
+        view[1] = [38, 37, 40, 39, 13][
+          [
+            "GamepadButton12",
+            "GamepadButton14",
+            "GamepadButton13",
+            "GamepadButton15",
+            "GamepadButton0",
+          ].indexOf(e.code)
+        ];
+      }
       if ([87, 65, 83, 68, 32].includes(view[1])) {
         view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
         send(2, buffer);

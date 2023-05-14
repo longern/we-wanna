@@ -14,17 +14,22 @@ function selectLevelScreen({
     switch (e.code) {
       case "ArrowLeft":
       case "ArrowUp":
+      case "GamepadButton14":
+      case "GamepadButton12":
         if (selectedLevel > 0) {
           selectedLevel--;
         }
         break;
       case "ArrowRight":
       case "ArrowDown":
+      case "GamepadButton15":
+      case "GamepadButton13":
         if (selectedLevel < levels.length - 1) {
           selectedLevel++;
         }
         break;
       case "Enter":
+      case "GamepadButton0":
         const levelPromise = levelImports[levels[selectedLevel]]();
         levelPromise.then((level) => {
           onLevelSelect(level);
