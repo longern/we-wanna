@@ -1,5 +1,5 @@
 import { Level } from "../types";
-import { instantiate, send, onmessage } from "../wasm";
+import WasmClient from "../backends/wasm";
 
 const disableColor = ["#333", "#2196f3", "#f44336"];
 
@@ -12,8 +12,10 @@ function levelScreen({
   playerId: number;
   onExit: () => void;
 }) {
-  instantiate().then(() => {
-    onmessage((channelId, buffer) => {
+  const client = new WasmClient();
+
+  client.onopen(function () {
+    client.onmessage((buffer) => {
       const view = new Uint8Array(buffer);
       switch (view[0]) {
         case 3:
@@ -50,7 +52,7 @@ function levelScreen({
     const view = new Uint8Array(buffer);
     view[0] = 0;
     view.set(levelBuffer, 1);
-    send(1, buffer);
+    this.send(buffer);
 
     document.addEventListener("keydown", (e) => {
       if (e.repeat) return;
@@ -71,9 +73,9 @@ function levelScreen({
       }
       if ([87, 65, 83, 68, 32].includes(view[1])) {
         view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
-        send(2, buffer);
+        client.send(buffer);
       } else {
-        send(1, buffer);
+        client.send(buffer);
       }
     });
 
@@ -95,9 +97,9 @@ function levelScreen({
       }
       if ([87, 65, 83, 68, 32].includes(view[1])) {
         view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
-        send(2, buffer);
+        client.send(buffer);
       } else {
-        send(1, buffer);
+        client.send(buffer);
       }
     });
   });

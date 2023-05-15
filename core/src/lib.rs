@@ -26,12 +26,12 @@ pub unsafe fn onmessage(channel_id: i32, length: i32) -> i32 {
                 Ok(map) => {
                     GAME_STATE.map = Some(map);
                     let output: [u8; 1] = [0; 1];
-                    send(channel_id - 1, output.as_ptr(), 1);
+                    send(channel_id, output.as_ptr(), 1);
                 }
                 Err(e) => {
                     let message = e.to_string();
                     let output = message.as_bytes();
-                    send(channel_id - 1, output.as_ptr(), message.len() as i32);
+                    send(channel_id, output.as_ptr(), message.len() as i32);
                 }
             }
         }
