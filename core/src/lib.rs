@@ -93,5 +93,7 @@ pub unsafe fn ontick() {
         OUTPUT_BUFFER[17 + i] = index_bytes[i];
     }
 
-    send(1, OUTPUT_BUFFER.as_ptr(), 21 + index as i32 * 12);
+    for i in 1..3 {
+        send(i, OUTPUT_BUFFER.as_ptr(), 21 + index as i32 * 12);
+    }
 }

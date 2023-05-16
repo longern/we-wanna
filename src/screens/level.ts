@@ -1,107 +1,105 @@
 import { Level } from "../types";
-import WasmClient from "../backends/wasm";
+import { Backend } from "../backends/types";
 
 const disableColor = ["#333", "#2196f3", "#f44336"];
 
 function levelScreen({
+  backend,
   level,
   playerId,
   onExit,
 }: {
+  backend: Backend;
   level: Level;
   playerId: number;
   onExit: () => void;
 }) {
-  const client = new WasmClient();
-
-  client.onopen(function () {
-    client.onmessage((buffer) => {
-      const view = new Uint8Array(buffer);
-      switch (view[0]) {
-        case 3:
-          const floatView = new Float32Array(buffer.slice(1, 17));
-          const [player0X, player0Y, player1X, player1Y] = floatView;
-          level.players[0].x = player0X;
-          level.players[0].y = player0Y;
-          level.players[1].x = player1X;
-          level.players[1].y = player1Y;
-
-          const animatedTilesCountView = new Int32Array(buffer.slice(17, 21));
-          const animatedTilesCount = animatedTilesCountView[0];
-          for (let i = 0; i < animatedTilesCount; i++) {
-            const offset = 21 + i * 12;
-            const animatedIndexView = new Int32Array(
-              buffer.slice(offset, offset + 4)
-            );
-            const animatedIndex = animatedIndexView[0];
-            const animatedPosView = new Float32Array(
-              buffer.slice(offset + 4, offset + 12)
-            );
-            const [x, y] = animatedPosView;
-            level.tiles[animatedIndex].x = x;
-            level.tiles[animatedIndex].y = y;
-          }
-
-          break;
-      }
-    });
-
-    // Concat level json with message type flag and convert to ArrayBuffer
-    const levelBuffer = new TextEncoder().encode(JSON.stringify(level));
-    const buffer = new ArrayBuffer(1 + levelBuffer.byteLength);
+  backend.onmessage((buffer) => {
     const view = new Uint8Array(buffer);
-    view[0] = 0;
-    view.set(levelBuffer, 1);
-    this.send(buffer);
+    switch (view[0]) {
+      case 3:
+        const floatView = new Float32Array(buffer.slice(1, 17));
+        const [player0X, player0Y, player1X, player1Y] = floatView;
+        level.players[0].x = player0X;
+        level.players[0].y = player0Y;
+        level.players[1].x = player1X;
+        level.players[1].y = player1Y;
 
-    document.addEventListener("keydown", (e) => {
-      if (e.repeat) return;
-      const buffer = new ArrayBuffer(2);
-      const view = new Uint8Array(buffer);
-      view[0] = 1;
-      view[1] = e.keyCode;
-      if (e.code.startsWith("GamepadButton")) {
-        view[1] = [38, 37, 40, 39, 13][
-          [
-            "GamepadButton12",
-            "GamepadButton14",
-            "GamepadButton13",
-            "GamepadButton15",
-            "GamepadButton0",
-          ].indexOf(e.code)
-        ];
-      }
-      if ([87, 65, 83, 68, 32].includes(view[1])) {
-        view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
-        client.send(buffer);
-      } else {
-        client.send(buffer);
-      }
-    });
+        const animatedTilesCountView = new Int32Array(buffer.slice(17, 21));
+        const animatedTilesCount = animatedTilesCountView[0];
+        for (let i = 0; i < animatedTilesCount; i++) {
+          const offset = 21 + i * 12;
+          const animatedIndexView = new Int32Array(
+            buffer.slice(offset, offset + 4)
+          );
+          const animatedIndex = animatedIndexView[0];
+          const animatedPosView = new Float32Array(
+            buffer.slice(offset + 4, offset + 12)
+          );
+          const [x, y] = animatedPosView;
+          level.tiles[animatedIndex].x = x;
+          level.tiles[animatedIndex].y = y;
+        }
 
-    document.addEventListener("keyup", (e) => {
-      const buffer = new ArrayBuffer(2);
-      const view = new Uint8Array(buffer);
-      view[0] = 2;
-      view[1] = e.keyCode;
-      if (e.code.startsWith("GamepadButton")) {
-        view[1] = [38, 37, 40, 39, 13][
-          [
-            "GamepadButton12",
-            "GamepadButton14",
-            "GamepadButton13",
-            "GamepadButton15",
-            "GamepadButton0",
-          ].indexOf(e.code)
-        ];
-      }
-      if ([87, 65, 83, 68, 32].includes(view[1])) {
-        view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
-        client.send(buffer);
-      } else {
-        client.send(buffer);
-      }
-    });
+        break;
+    }
+  });
+
+  // Concat level json with message type flag and convert to ArrayBuffer
+  const levelBuffer = new TextEncoder().encode(JSON.stringify(level));
+  const buffer = new ArrayBuffer(1 + levelBuffer.byteLength);
+  const view = new Uint8Array(buffer);
+  view[0] = 0;
+  view.set(levelBuffer, 1);
+  backend.send(buffer);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.repeat) return;
+    const buffer = new ArrayBuffer(2);
+    const view = new Uint8Array(buffer);
+    view[0] = 1;
+    view[1] = e.keyCode;
+    if (e.code.startsWith("GamepadButton")) {
+      view[1] = [38, 37, 40, 39, 13][
+        [
+          "GamepadButton12",
+          "GamepadButton14",
+          "GamepadButton13",
+          "GamepadButton15",
+          "GamepadButton0",
+        ].indexOf(e.code)
+      ];
+    }
+    if ([87, 65, 83, 68, 32].includes(view[1])) {
+      view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
+      backend.send(buffer);
+    } else {
+      backend.send(buffer);
+    }
+  });
+
+  document.addEventListener("keyup", (e) => {
+    const buffer = new ArrayBuffer(2);
+    const view = new Uint8Array(buffer);
+    view[0] = 2;
+    view[1] = e.keyCode;
+    if (e.code.startsWith("GamepadButton")) {
+      view[1] = [38, 37, 40, 39, 13][
+        [
+          "GamepadButton12",
+          "GamepadButton14",
+          "GamepadButton13",
+          "GamepadButton15",
+          "GamepadButton0",
+        ].indexOf(e.code)
+      ];
+    }
+    if ([87, 65, 83, 68, 32].includes(view[1])) {
+      view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
+      backend.send(buffer);
+    } else {
+      backend.send(buffer);
+    }
   });
 
   function render(ctx: CanvasRenderingContext2D) {

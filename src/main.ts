@@ -3,7 +3,9 @@ import "./gamepad";
 import "./mobile";
 import levelScreen from "./screens/level";
 import selectLevelScreen from "./screens/select-level";
+import selectPlayModeScreen from "./screens/play-mode";
 import { Level } from "./types";
+import { Backend } from "./backends/types";
 
 const canvas = document.createElement("canvas");
 canvas.width = 960;
@@ -19,27 +21,43 @@ interface Component {
 }
 
 function main() {
-  function createSelectLevelScreen() {
-    return selectLevelScreen({
-      onLevelSelect: (level) => {
+  function createSelectPlayModeScreen() {
+    return selectPlayModeScreen({
+      onPlayModeSelect: (backend) => {
         component.unmount?.();
-        component = createLevelScreen({ level });
+        component = createSelectLevelScreen({ backend });
       },
     });
   }
 
-  function createLevelScreen({ level }: { level: Level }) {
+  function createSelectLevelScreen({ backend }: { backend: Backend }) {
+    return selectLevelScreen({
+      onLevelSelect: (level) => {
+        component.unmount?.();
+        component = createLevelScreen({ backend, level });
+      },
+    });
+  }
+
+  function createLevelScreen({
+    backend,
+    level,
+  }: {
+    backend: Backend;
+    level: Level;
+  }) {
     return levelScreen({
+      backend,
       level,
       playerId: 0,
       onExit: () => {
         component.unmount?.();
-        component = createSelectLevelScreen();
+        component = createSelectLevelScreen({ backend });
       },
     });
   }
 
-  let component: Component = createSelectLevelScreen();
+  let component: Component = createSelectPlayModeScreen();
 
   setInterval(() => {
     component.render(canvas.getContext("2d")!);
