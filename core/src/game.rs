@@ -61,57 +61,94 @@ pub struct Map {
     pub goal: Goal,
 }
 
-impl Map {
-    pub fn from_json(map_json: &[u8]) -> Result<Map, serde_json::Error> {
-        serde_json::from_slice(map_json)
-    }
+#[repr(u8)]
+pub enum Screen {
+    Lobby,
+    SelectLevel,
+    Game,
 }
 
-#[derive(Deserialize)]
 pub struct GameState {
-    pub map: Option<Map>,
     pub tick: u32,
+    pub screen: Screen,
+    pub connections: Vec<u32>,
+    pub last_update_tick: u32,
+    pub last_sync_tick: u32,
+
+    pub levels: Vec<String>,
+    pub selected_level: usize,
+    pub confirmed: bool,
+
+    pub map: Option<Map>,
+    pub map_json: String,
 }
 
 impl GameState {
     pub fn onkeydown(&mut self, player_index: usize, key: u32) {
-        if self.map.is_none() {
-            return;
-        }
-
-        let map = self.map.as_mut().unwrap();
-        let player = &mut map.players[player_index];
-        let tiles = &map.tiles;
-        if key == 37 {
-            player.left_pressed = true;
-            player.ax = -30.0;
-        } else if key == 39 {
-            player.right_pressed = true;
-            player.ax = 30.0;
-        } else if key == 13 {
-            // Detect if the player is on the ground
-            // and if so, set the velocity to jump
-            let mut on_ground = false;
-            for tile in tiles {
-                if (tile.y - player.y + 1.).abs() < 0.001 && (tile.x - player.x).abs() < 1. {
-                    on_ground = true;
+        match self.screen {
+            Screen::Lobby => {
+                if key == 13 {
+                    self.screen = Screen::SelectLevel;
+                    self.last_update_tick = self.tick;
                 }
             }
-            if player.y.abs() < 0.001 {
-                on_ground = true;
+
+            Screen::SelectLevel => {
+                if key == 37 {
+                    if self.selected_level > 0 && !self.confirmed {
+                        self.selected_level -= 1;
+                        self.last_update_tick = self.tick;
+                    }
+                } else if key == 39 {
+                    if self.selected_level + 1 < self.levels.len() && !self.confirmed {
+                        self.selected_level += 1;
+                        self.last_update_tick = self.tick;
+                    }
+                } else if key == 13 {
+                    self.confirmed = true;
+                    self.last_update_tick = self.tick;
+                }
             }
-            if on_ground {
-                player.vy = 20.;
+
+            Screen::Game => {
+                let map = match self.map {
+                    Some(ref mut map) => map,
+                    None => return,
+                };
+                let player = &mut map.players[player_index];
+                let tiles = &map.tiles;
+                if key == 37 {
+                    player.left_pressed = true;
+                    player.ax = -30.0;
+                } else if key == 39 {
+                    player.right_pressed = true;
+                    player.ax = 30.0;
+                } else if key == 13 {
+                    // Detect if the player is on the ground
+                    // and if so, set the velocity to jump
+                    let mut on_ground = false;
+                    for tile in tiles {
+                        if (tile.y - player.y + 1.).abs() < 0.001 && (tile.x - player.x).abs() < 1.
+                        {
+                            on_ground = true;
+                        }
+                    }
+                    if player.y.abs() < 0.001 {
+                        on_ground = true;
+                    }
+                    if on_ground {
+                        player.vy = 20.;
+                    }
+                }
             }
         }
     }
 
     pub fn onkeyup(&mut self, player_index: usize, key: u32) {
-        if self.map.is_none() {
-            return;
-        }
-
-        let map = self.map.as_mut().unwrap();
+        let map = match self.map {
+            Some(ref mut map) => map,
+            None => return,
+        };
         let player = &mut map.players[player_index];
         if key == 37 {
             player.left_pressed = false;
@@ -200,19 +237,21 @@ impl GameState {
 
     // Update the game state
     pub fn ontick(&mut self) {
-        if self.map.is_none() {
-            return;
-        }
-        let map = self.map.as_mut().unwrap();
-
         self.tick += 1;
 
-        for tile in &mut map.tiles {
-            if tile.animation.is_none() {
-                continue;
-            }
+        if !matches!(self.screen, Screen::Game) {
+            return;
+        }
+        let map = match self.map {
+            Some(ref mut map) => map,
+            None => return,
+        };
 
-            let animation = tile.animation.as_ref().unwrap();
+        for tile in &mut map.tiles {
+            let animation = match tile.animation {
+                Some(ref mut animation) => animation,
+                None => continue,
+            };
             let elapsed = self.tick as f32 / 60.;
             let mut offset = (elapsed - animation.delay) / animation.duration;
             offset %= 1.;

@@ -1,66 +1,44 @@
 import { Level } from "../types";
-import { Backend } from "../backends/types";
+import { backendContext, gameStateContext } from "../contexts";
+import { OutputMessageType, decodeOutputMessage } from "../messages";
 
 const disableColor = ["#333", "#2196f3", "#f44336"];
 
-function levelScreen({
-  backend,
-  level,
-  playerId,
-  onExit,
-}: {
-  backend: Backend;
-  level: Level;
-  playerId: number;
-  onExit: () => void;
-}) {
+function levelScreen() {
+  const { backend } = backendContext.use();
+  const { gameState, setGameState } = gameStateContext.use();
+  let playerId = 0;
+
+  if (gameState.screen !== 3) throw new Error("Not in game screen");
+  const level = gameState.level;
+
   backend.onmessage((buffer) => {
-    const view = new Uint8Array(buffer);
-    switch (view[0]) {
-      case 3:
-        const floatView = new Float32Array(buffer.slice(1, 17));
-        const [player0X, player0Y, player1X, player1Y] = floatView;
-        level.players[0].x = player0X;
-        level.players[0].y = player0Y;
-        level.players[1].x = player1X;
-        level.players[1].y = player1Y;
-
-        const animatedTilesCountView = new Int32Array(buffer.slice(17, 21));
-        const animatedTilesCount = animatedTilesCountView[0];
-        for (let i = 0; i < animatedTilesCount; i++) {
-          const offset = 21 + i * 12;
-          const animatedIndexView = new Int32Array(
-            buffer.slice(offset, offset + 4)
-          );
-          const animatedIndex = animatedIndexView[0];
-          const animatedPosView = new Float32Array(
-            buffer.slice(offset + 4, offset + 12)
-          );
-          const [x, y] = animatedPosView;
-          level.tiles[animatedIndex].x = x;
-          level.tiles[animatedIndex].y = y;
+    const message = decodeOutputMessage(buffer);
+    switch (message.type) {
+      case OutputMessageType.Sync:
+        setGameState(message.value);
+        break;
+      case OutputMessageType.Coord:
+        level.players[0].x = message.value.player0x;
+        level.players[0].y = message.value.player0y;
+        level.players[1].x = message.value.player1x;
+        level.players[1].y = message.value.player1y;
+        for (const tile of message.value.animatedTiles) {
+          level.tiles[tile.index].x = tile.x;
+          level.tiles[tile.index].y = tile.y;
         }
-
         break;
     }
   });
 
-  // Concat level json with message type flag and convert to ArrayBuffer
-  const levelBuffer = new TextEncoder().encode(JSON.stringify(level));
-  const buffer = new ArrayBuffer(1 + levelBuffer.byteLength);
-  const view = new Uint8Array(buffer);
-  view[0] = 0;
-  view.set(levelBuffer, 1);
-  backend.send(buffer);
-
   document.addEventListener("keydown", (e) => {
     if (e.repeat) return;
-    const buffer = new ArrayBuffer(2);
+    const buffer = new ArrayBuffer(8);
     const view = new Uint8Array(buffer);
-    view[0] = 1;
-    view[1] = e.keyCode;
+    view[0] = 2;
+    view[4] = e.keyCode;
     if (e.code.startsWith("GamepadButton")) {
-      view[1] = [38, 37, 40, 39, 13][
+      view[4] = [38, 37, 40, 39, 13][
         [
           "GamepadButton12",
           "GamepadButton14",
@@ -70,8 +48,8 @@ function levelScreen({
         ].indexOf(e.code)
       ];
     }
-    if ([87, 65, 83, 68, 32].includes(view[1])) {
-      view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
+    if ([87, 65, 83, 68, 32].includes(view[4])) {
+      view[4] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[4])];
       backend.send(buffer);
     } else {
       backend.send(buffer);
@@ -79,12 +57,12 @@ function levelScreen({
   });
 
   document.addEventListener("keyup", (e) => {
-    const buffer = new ArrayBuffer(2);
+    const buffer = new ArrayBuffer(8);
     const view = new Uint8Array(buffer);
-    view[0] = 2;
-    view[1] = e.keyCode;
+    view[0] = 3;
+    view[4] = e.keyCode;
     if (e.code.startsWith("GamepadButton")) {
-      view[1] = [38, 37, 40, 39, 13][
+      view[4] = [38, 37, 40, 39, 13][
         [
           "GamepadButton12",
           "GamepadButton14",
@@ -94,8 +72,8 @@ function levelScreen({
         ].indexOf(e.code)
       ];
     }
-    if ([87, 65, 83, 68, 32].includes(view[1])) {
-      view[1] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[1])];
+    if ([87, 65, 83, 68, 32].includes(view[4])) {
+      view[4] = [38, 37, 40, 39, 13][[87, 65, 83, 68, 32].indexOf(view[4])];
       backend.send(buffer);
     } else {
       backend.send(buffer);

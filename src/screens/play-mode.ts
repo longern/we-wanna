@@ -1,17 +1,16 @@
-import { Backend } from "../backends/types";
+import { backendContext, gameStateContext } from "../contexts";
 import WasmClient from "../backends/wasm";
 import WhipClient from "../backends/whip";
+import { GameScreenType } from "../messages";
 
 const wasmUrl = new URL(
   "../../core/target/wasm32-unknown-unknown/release/we_wanna_core.wasm",
   import.meta.url
 );
 
-function selectPlayModeScreen({
-  onPlayModeSelect,
-}: {
-  onPlayModeSelect: (backend: Backend) => void;
-}) {
+function selectPlayModeScreen() {
+  const { setBackend } = backendContext.use();
+  const { setGameState } = gameStateContext.use();
   const playModes = ["WHIP Server", "Local"];
   let selectedPlayMode = 0;
 
@@ -47,15 +46,18 @@ function selectPlayModeScreen({
                 return wasm;
               });
               backend.onopen(() => {
-                onPlayModeSelect(backend);
+                setBackend(backend);
+                setGameState({ screen: GameScreenType.Lobby, players: 0 });
               });
             }
             break;
           case "Local":
             const backend = new WasmClient();
             backend.onopen(() => {
-              onPlayModeSelect(backend);
+              setBackend(backend);
+              setGameState({ screen: GameScreenType.Lobby, players: 0 });
             });
+            break;
         }
         break;
     }

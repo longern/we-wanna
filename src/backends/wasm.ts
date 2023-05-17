@@ -39,6 +39,7 @@ class WasmClient {
         view.set(new Uint8Array(buffer));
       },
       send: (channelId: number, ptr: number, len: number) => {
+        if (channelId !== this.#channelId) return;
         const array = new Uint8Array(this.#exports.memory.buffer);
         const view = array.slice(ptr, ptr + len);
         this.#onmessageCallback(view.buffer);
@@ -85,6 +86,9 @@ class WasmClient {
 
   onmessage(callback: (buffer: ArrayBuffer) => void) {
     this.#onmessageCallback = callback;
+    return () => {
+      this.#onmessageCallback = () => {};
+    };
   }
 
   close() {}
