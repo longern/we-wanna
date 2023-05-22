@@ -20,7 +20,7 @@ class WhipClient {
 
       conn.setRemoteDescription({ type: "answer", sdp: answer });
 
-      this.#channel.addEventListener("message", (event) => {
+      const eventHandler = (event: MessageEvent) => {
         if (typeof event.data !== "string") return;
         const data = event.data;
         const { status } = JSON.parse(data);
@@ -35,13 +35,21 @@ class WhipClient {
               }
             };
             wasmChannel.onclose = () => {
+              if (this.#channel.readyState === "closed") {
+                this.#channel = conn.createDataChannel("main", {
+                  ordered: false,
+                });
+                this.#channel.addEventListener("message", eventHandler);
+              }
               this.#onopen();
             };
           });
         } else if (status === 200) {
           this.#onopen();
         }
-      });
+      };
+
+      this.#channel.addEventListener("message", eventHandler);
     });
   }
 
